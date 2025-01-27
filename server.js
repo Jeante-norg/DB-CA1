@@ -1,26 +1,26 @@
-import dotenv from "dotenv";
-dotenv.config({ path: "./.env" });
-import express from "express";
-import { connectDB } from "./db.js";
-import restaurantModel from "./restaurant.model.js";
-import itemModel from "./item.model.js";
+import dotenv from 'dotenv';
+dotenv.config({ path: './.env' });
+import express from 'express';
+import { connectDB } from './db.js';
+import restaurantModel from './restaurant.model.js';
+import itemModel from './item.model.js';
 const app = express();
 
 app.use(express.json());
 
-app.get("/get-restaurant", async (req, res) => {
+app.get('/get-restaurant', async (req, res) => {
   try {
-    const allRestaurants = await restaurantModel.find();
+    const allRestaurants = await restaurantModel.find().populate('itemsArr');
     res.status(200).json({
       success: true,
       data: allRestaurants,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.post("/create-restaurant", async (req, res) => {
+app.post('/create-restaurant', async (req, res) => {
   const { name, city } = req.body;
   try {
     const newRestaurant = await restaurantModel.create({
@@ -29,15 +29,15 @@ app.post("/create-restaurant", async (req, res) => {
     });
     res.status(201).json({
       success: true,
-      message: "Restaurant successfully created.",
+      message: 'Restaurant successfully created.',
       data: newRestaurant,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.put("/update-restaurant/:id", async (req, res) => {
+app.put('/update-restaurant/:id', async (req, res) => {
   const restaurantId = req.params.id;
   try {
     const updatedRestaurant = await restaurantModel.findByIdAndUpdate(
@@ -47,15 +47,15 @@ app.put("/update-restaurant/:id", async (req, res) => {
     );
     res.status(200).json({
       success: true,
-      message: "Restaurant successfully updated.",
+      message: 'Restaurant successfully updated.',
       data: updatedRestaurant,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.delete("/delete-restaurant/:id", async (req, res) => {
+app.delete('/delete-restaurant/:id', async (req, res) => {
   const restaurantId = req.params.id;
   try {
     const deletedRestaurant = await restaurantModel.findByIdAndDelete(
@@ -63,15 +63,15 @@ app.delete("/delete-restaurant/:id", async (req, res) => {
     );
     res.status(200).json({
       success: true,
-      message: "Restaurant successfully deleted.",
+      message: 'Restaurant successfully deleted.',
       data: deletedRestaurant,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.post("/create-item", async (req, res) => {
+app.post('/create-item', async (req, res) => {
   const { name, price } = req.body;
   try {
     const newItem = await itemModel.create({
@@ -80,15 +80,15 @@ app.post("/create-item", async (req, res) => {
     });
     res.status(201).json({
       success: true,
-      message: "item successfully created.",
+      message: 'item successfully created.',
       data: newItem,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.get("/get-item", async (req, res) => {
+app.get('/get-item', async (req, res) => {
   try {
     const allItems = await itemModel.find();
     res.status(200).json({
@@ -96,11 +96,11 @@ app.get("/get-item", async (req, res) => {
       data: allItems,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.put("/update-item/:id", async (req, res) => {
+app.put('/update-item/:id', async (req, res) => {
   const itemId = req.params.id;
   try {
     const updatedItem = await itemModel.findByIdAndUpdate(itemId, req.body, {
@@ -108,46 +108,54 @@ app.put("/update-item/:id", async (req, res) => {
     });
     res.status(200).json({
       success: true,
-      message: "Item successfully updated.",
+      message: 'Item successfully updated.',
       data: updatedItem,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.delete("/delete-item/:id", async (req, res) => {
+app.delete('/delete-item/:id', async (req, res) => {
   const itemId = req.params.id;
   try {
     const deletedItem = await itemModel.findByIdAndDelete(itemId);
     res.status(200).json({
       success: true,
-      message: "Item successfully deleted.",
+      message: 'Item successfully deleted.',
       data: deletedItem,
     });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+    res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
-app.post("/add-item-to-restaurant/:id", async (req, res) => {
-  const { itemId } = req.params.id;
+app.post('/add-item-to-restaurant/:id', async (req, res) => {
+  const { itemId } = req.query;
   try {
     const restaurantId = req.params.id;
+    console.log(restaurantId, itemId);
+
     // const item = await itemModel.findOne(itemId);
-    const restaurant = await restaurantModel.findOne(restaurantId);
-    const updated = restaurant.push({ itemsArr: updated });
+    // const restaurant = await restaurantModel.findOne({ _id: restaurantId });
+    // const updated = restaurant.push({ itemsArr: updated });
+    const data = await restaurantModel.findByIdAndUpdate(
+      { _id: restaurantId },
+      { $push: { itemsArr: itemId } },
+      { new: true }
+    );
     res.status(200).json({
       success: true,
-      message: "Item successfully added to the restaurant.",
-      data: updated,
+      message: 'Item successfully added to the restaurant.',
+      data,
     });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error." });
+  } catch (er) {
+    console.log(er.message);
+    res.status(500).json({ message: 'Internal server error.', m: er.message });
   }
 });
 
-const port = process.env.PORT;
+const port = process.env.PORT || 8080;
 
 app.listen(port, () => {
   connectDB();
