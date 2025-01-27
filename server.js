@@ -131,14 +131,11 @@ app.delete("/delete-item/:id", async (req, res) => {
 });
 
 app.post("/add-item-to-restaurant/:id", async (req, res) => {
-  const { itemId } = req.query.id;
+  const { itemId } = req.params.id;
   try {
     const restaurantId = req.params.id;
-    const restaurant = await restaurantModel.findByIdAndUpdate(
-      restaurantId,
-      itemId,
-      { new: true }
-    );
+    // const item = await itemModel.findOne(itemId);
+    const restaurant = await restaurantModel.findOne(restaurantId);
     const updated = restaurant.push({ itemsArr: updated });
     res.status(200).json({
       success: true,
